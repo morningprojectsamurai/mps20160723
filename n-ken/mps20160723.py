@@ -133,7 +133,7 @@ plt.figure()
 plt.title("SE History")
 plt.plot(range(len(se_history)), se_history, color="#24d4c4")
 plt.plot(range(len(se_history)), ma(se_history, 100), color="#ec2396")
-plt.savefig("se_history.png", transpatent=True)
+plt.savefig("se_history.png", transparent=True)
 
 # draw CPR history
 plt.figure()
