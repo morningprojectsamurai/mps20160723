@@ -112,7 +112,7 @@ if __name__ == '__main__':
         X_train = X_train[idx, :]
         y_train = y_train[idx, :]
 
-        for i in tqdm(range(j + n_training_data)):
+        for i in tqdm(range(n_training_data)):
 
             # 重み行列のノルムの計算し、履歴リストに追加
             W1_history.append(np.linalg.norm(layer1._W))
