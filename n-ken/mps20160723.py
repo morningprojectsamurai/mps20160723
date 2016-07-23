@@ -92,7 +92,7 @@ if __name__ == '__main__':
     layer2 = Layer(W2, b2, sigmoid)
 
     # learning rate
-    epsilon = 0.15
+    epsilon = 0.1
 
     # batch size
     n_training_data = 1000
@@ -134,10 +134,10 @@ if __name__ == '__main__':
             se_history.append(se(t, y2))
 
             # 誤差逆伝播
-            delta2 = d_se(t, y2) * d_relu(y2)
-            delta1 = layer2._W.T @ delta2 * d_relu(y1)
-            # delta2 = d_se(t, y2) * d_sigmoid(y2)
-            # delta1 = layer2._W.T @ delta2 * d_sigmoid(y1)
+            # delta2 = d_se(t, y2) * d_relu(y2)
+            # delta1 = layer2._W.T @ delta2 * d_relu(y1)
+            delta2 = d_se(t, y2) * d_sigmoid(y2)
+            delta1 = layer2._W.T @ delta2 * d_sigmoid(y1)
 
             # 第二層の重み行列について、偏微分*学習率を除算
             Delta_W2 = delta2 @ y1.T
