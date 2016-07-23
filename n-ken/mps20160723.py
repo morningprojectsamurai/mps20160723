@@ -40,13 +40,9 @@ if __name__ == '__main__':
 
     # データの読み込み
     train = pd.read_csv("train.csv")
-    X = (train.drop(["label"], axis=1).values).astype(np.float) / 255
+    X_train = (train.drop(["label"], axis=1).values).astype(np.float) / 255
     binarizer = LabelBinarizer()
-    y = binarizer.fit_transform(train.label).astype(float)
-
-    # データを訓練 / 検証セットに分割
-    X_train, X_test, y_train, y_test = \
-        train_test_split(X, y, test_size=0.2)
+    y_train = binarizer.fit_transform(train.label).astype(float)
 
     # input layer
     n_output_0 = X_train.shape[1]
@@ -63,9 +59,8 @@ if __name__ == '__main__':
     b2 = np.random.randn(n_output_2, 1)
     layer2 = Layer(W2, b2, sigmoid)
 
-    # learning
+    # learning rate
     epsilon = 0.15
-    # epsion = np.finfo(np.float).eps
 
     # batch size
     n_training_data = 1000 # X_train.shape[0]
@@ -125,19 +120,23 @@ if __name__ == '__main__':
 plt.figure()
 plt.title("W1 history")
 plt.plot(range(len(W1_history)), W1_history)
+plt.savefig("w1_history.png", transparent=True)
 
 # draw W2
 plt.figure()
 plt.title("W2 history")
 plt.plot(range(len(W2_history)), W2_history)
+plt.savefig("w2_history.png", transparent=True)
 
 #draw SE history and its moving average
 plt.figure()
 plt.title("SE History")
 plt.plot(range(len(se_history)), se_history, color="#24d4c4")
 plt.plot(range(len(se_history)), ma(se_history, 100), color="#ec2396")
+plt.savefig("se_history.png", transpatent=True)
 
 # draw CPR history
 plt.figure()
 plt.title('CPR')
 plt.plot(range(len(cpr_history)), cpr_history)
+plt.savefig("cpr.png", transparent=True)
