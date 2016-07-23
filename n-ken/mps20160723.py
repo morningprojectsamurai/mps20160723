@@ -1,5 +1,4 @@
 import numpy as np
-from scipy import misc
 
 # sigmoid関数の定義
 def sigmoid(s):
@@ -34,8 +33,6 @@ class Layer:
 
 if __name__ == '__main__':
 
-    import os
-    import numpy as np
     import pandas as pd
     import matplotlib.pyplot as plt
     from sklearn.preprocessing import LabelBinarizer
