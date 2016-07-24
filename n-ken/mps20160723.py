@@ -135,8 +135,8 @@ if __name__ == '__main__':
 
                 # 誤差逆伝播
                 # delta2 = d_se(t, y2) * d_relu(y2)
+                delta2 = d_se(t, y2)# * d_sigmoid(y2)
                 # delta1 = layer2._W.T @ delta2 * d_relu(y1)
-                delta2 = d_se(t, y2) * d_sigmoid(y2)
                 delta1 = layer2._W.T @ delta2 * d_sigmoid(y1)
 
                 # 各イテレーションの最初のデータを格納する
