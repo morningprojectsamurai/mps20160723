@@ -86,17 +86,16 @@ if __name__ == '__main__':
     n_output_1 = 200
     W1 = np.random.randn(n_output_1, n_output_0)
     b1 = np.random.randn(n_output_1, 1)
-    # layer1 = Layer(W1, b1, relu)
     layer1 = Layer(W1, b1, sigmoid)
+    # layer1 = Layer(W1, b1, relu)
 
     # output layer
     # - 出力層が10ユニット(10クラス分類のため)
     n_output_2 = 10
     W2 = np.random.randn(n_output_2, n_output_1)
     b2 = np.random.randn(n_output_2, 1)
-    # layer2 = Layer(W2, b2, relu)
-    # layer2 = Layer(W2, b2, sigmoid)
     layer2 = Layer(W2, b2, softmax)
+    # layer2 = Layer(W2, b2, relu)
 
     # learning rate
     epsilon = 0.1
@@ -134,10 +133,9 @@ if __name__ == '__main__':
                 t = y_train[i, :].reshape(n_output_2, 1)
 
                 # 誤差逆伝播
-                # delta2 = d_se(t, y2) * d_relu(y2)
-                # delta1 = layer2._W.T @ delta2 * d_relu(y1)
-                delta2 = d_se(t, y2) * d_sigmoid(y2)
+                delta2 = d_se(t, y2)
                 delta1 = layer2._W.T @ delta2 * d_sigmoid(y1)
+                # delta1 = layer2._W.T @ delta2 * d_relu(y1)
 
                 # 各イテレーションの最初のデータを格納する
                 if i % (n_training_data) == 0:
