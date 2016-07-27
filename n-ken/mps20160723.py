@@ -1,55 +1,5 @@
 import numpy as np
-
-def softmax(s):
-    '''
-    ソフトマックス関数
-    '''
-    return np.exp(s) / np.exp(s).sum()
-
-def sigmoid(s):
-    '''
-    sigmoid関数
-    '''
-    return 1 / (1 + np.exp(-s))
-
-def relu(s):
-    '''
-    relu
-    '''
-
-    return max(s, 0)
-
-relu = np.vectorize(relu)
-
-def d_sigmoid(s):
-    '''
-    sigmoid関数の微分
-    '''
-    return s * (1 - s)
-
-def d_relu(s):
-    return 1 if s > 0 else 0
-
-d_relu = np.vectorize(d_relu)
-
-def se(t, y):
-    '''
-    損失関数
-    '''
-    return ((t - y).T @ (t - y)).flatten()[0] / 2
-
-def d_se(t, y):
-    '''
-    損失関数の微分
-    '''
-    return -(t - y)
-
-def ma(history, n):
-    '''
-    移動平均
-    '''
-    return np.array([0, ] * (n - 1) + \
-            [np.average(history[(i - n): i]) for i in range(n, len(history) + 1)])
+from utils.functions import sigmoid, d_sigmoid, se, d_se, ma, softmax
 
 class Layer:
     '''
@@ -87,7 +37,6 @@ if __name__ == '__main__':
     W1 = np.random.randn(n_output_1, n_output_0)
     b1 = np.random.randn(n_output_1, 1)
     layer1 = Layer(W1, b1, sigmoid)
-    # layer1 = Layer(W1, b1, relu)
 
     # output layer
     # - 出力層が10ユニット(10クラス分類のため)
@@ -95,7 +44,6 @@ if __name__ == '__main__':
     W2 = np.random.randn(n_output_2, n_output_1)
     b2 = np.random.randn(n_output_2, 1)
     layer2 = Layer(W2, b2, softmax)
-    # layer2 = Layer(W2, b2, relu)
 
     # learning rate
     epsilon = 0.1
@@ -135,7 +83,6 @@ if __name__ == '__main__':
                 # 誤差逆伝播
                 delta2 = d_se(t, y2)
                 delta1 = layer2._W.T @ delta2 * d_sigmoid(y1)
-                # delta1 = layer2._W.T @ delta2 * d_relu(y1)
 
                 # 各イテレーションの最初のデータを格納する
                 if i % (n_training_data) == 0:
@@ -179,27 +126,27 @@ if __name__ == '__main__':
                     n_correct_prediction += 1
             cpr_history.append(n_correct_prediction / n_prediction)
 
-# draw W1
-plt.figure()
-plt.title("W1 history")
-plt.plot(range(len(W1_history)), W1_history)
-plt.savefig("w1_history.png", transparent=True)
+    # draw W1
+    plt.figure()
+    plt.title("W1 history")
+    plt.plot(range(len(W1_history)), W1_history)
+    plt.savefig("w1_history.png", transparent=True)
 
-# draw W2
-plt.figure()
-plt.title("W2 history")
-plt.plot(range(len(W2_history)), W2_history)
-plt.savefig("w2_history.png", transparent=True)
+    # draw W2
+    plt.figure()
+    plt.title("W2 history")
+    plt.plot(range(len(W2_history)), W2_history)
+    plt.savefig("w2_history.png", transparent=True)
 
-#draw SE history and its moving average
-plt.figure()
-plt.title("SE History")
-plt.plot(range(len(se_history)), se_history, color="#24d4c4")
-plt.plot(range(len(se_history)), ma(se_history, 100), color="#ec2396")
-plt.savefig("se_history.png", transparent=True)
+    #draw SE history and its moving average
+    plt.figure()
+    plt.title("SE History")
+    plt.plot(range(len(se_history)), se_history, color="#24d4c4")
+    plt.plot(range(len(se_history)), ma(se_history, 100), color="#ec2396")
+    plt.savefig("se_history.png", transparent=True)
 
-# draw CPR history
-plt.figure()
-plt.title('CPR')
-plt.plot(range(len(cpr_history)), cpr_history)
-plt.savefig("cpr.png", transparent=True)
+    # draw CPR history
+    plt.figure()
+    plt.title('CPR')
+    plt.plot(range(len(cpr_history)), cpr_history)
+    plt.savefig("cpr.png", transparent=True)
