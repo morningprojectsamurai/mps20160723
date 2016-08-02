@@ -48,7 +48,10 @@ if __name__ == '__main__':
     # パラメーターの指定
     batch_size = 1000
     test_size = 0.2
-    lr = 0.1
+    lr = 0.001
+    beta1 = 0.9
+    beta2 = 0.999
+    eps = 1e-8
 
     # 学習セットとテストセットに分割
     X_train, X_test, y_train, y_test = \
@@ -61,6 +64,11 @@ if __name__ == '__main__':
     b1_norm = []
     w2_norm = []
     b2_norm = []
+
+    m_w1, m_b1, m_w2, m_b2 = (0, ) * 4
+    v_w1, v_b1, v_w2, v_b2 = (0, ) * 4
+
+    counter = 1
 
     for loop in tqdm(range(400)):
         # 並び替え
@@ -81,16 +89,36 @@ if __name__ == '__main__':
             # BackPropagation
             delta2 = d_se(y_train_batch.T, y2)
             delta1 = (layer2._w.T @ delta2) * d_sigmoid(y1)
-            grad_w2 = (delta2 @ y1.T)
+            grad_w2 = (delta2 @ y1.T) / X_train_batch.shape[0]
             grad_b2 = delta2.mean(1).reshape(n_units_2, 1)
-            grad_w1 = (delta1 @ X_train_batch)
+            grad_w1 = (delta1 @ X_train_batch) / X_train_batch.shape[0]
             grad_b1 = delta1.mean(1).reshape(n_units_1, 1)
 
             # パラメーターの更新
-            layer2._w -= lr * grad_w2 / X_train_batch.shape[0]
-            layer2._b -= lr * grad_b2
-            layer1._w -= lr * grad_w1 / X_train_batch.shape[0]
-            layer1._b -= lr * grad_b1
+            m_w1 = beta1 * m_w1 + (1 - beta1) * grad_w1
+            m_b1 = beta1 * m_b1 + (1 - beta1) * grad_b1
+            m_w2 = beta1 * m_w2 + (1 - beta1) * grad_w2
+            m_b2 = beta1 * m_b2 + (1 - beta1) * grad_b2
+
+            v_w1 = beta2 * v_w1 + (1 - beta2) * grad_w1 ** 2
+            v_b1 = beta2 * v_b1 + (1 - beta2) * grad_b1 ** 2
+            v_w2 = beta2 * v_w2 + (1 - beta2) * grad_w2 ** 2
+            v_b2 = beta2 * v_b2 + (1 - beta2) * grad_b2 ** 2
+
+            m_w1_hat = m_w1 / (1 - beta1**(counter))
+            m_b1_hat = m_b1 / (1 - beta1**(counter))
+            m_w2_hat = m_w2 / (1 - beta1**(counter))
+            m_b2_hat = m_b2 / (1 - beta1**(counter))
+
+            v_w1_hat = v_w1 / (1 - beta2**(counter))
+            v_b1_hat = v_b1 / (1 - beta2**(counter))
+            v_w2_hat = v_w2 / (1 - beta2**(counter))
+            v_b2_hat = v_b2 / (1 - beta2**(counter))
+
+            layer1._w -= lr / (np.sqrt(v_w1_hat) + eps) * m_w1_hat
+            layer1._b -= lr / (np.sqrt(v_b1_hat) + eps) * m_b1_hat
+            layer2._w -= lr / (np.sqrt(v_w2_hat) + eps) * m_w2_hat
+            layer2._b -= lr / (np.sqrt(v_b2_hat) + eps) * m_b2_hat
 
             # テストセットで評価
             accuracy.append(accuracy_score(y2.T.argmax(1), y_train_batch.argmax(1)))
@@ -99,10 +127,12 @@ if __name__ == '__main__':
             w2_norm.append(np.linalg.norm(layer2._w))
             b2_norm.append(np.linalg.norm(layer2._b))
 
+            counter += 1
+
     # テストセットでの精度
     plt.plot(range(len(accuracy)), accuracy)
-    plt.title("テストセットでのAccuracy")
+    plt.title("テストセットでのAccuracy(Adam)")
     plt.xlabel("反復回数")
     plt.ylabel("精度")
     plt.ylim(0, 1)
-    plt.savefig("accuracy_on_test.png", transparent=True)
+    plt.savefig("accuracy_on_test_adam.png", transparent=True)

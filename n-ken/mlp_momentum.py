@@ -1,5 +1,7 @@
 import numpy as np
 from utils.functions import softmax, sigmoid, d_sigmoid, d_se
+from utils.optimizers import momentum_sgd
+
 
 class Layer(object):
 
@@ -49,6 +51,7 @@ if __name__ == '__main__':
     batch_size = 1000
     test_size = 0.2
     lr = 0.1
+    momentum = 0.9
 
     # 学習セットとテストセットに分割
     X_train, X_test, y_train, y_test = \
@@ -61,6 +64,7 @@ if __name__ == '__main__':
     b1_norm = []
     w2_norm = []
     b2_norm = []
+    delta_w1, delta_b1, delta_w2, delta_b2 = (0,) * 4
 
     for loop in tqdm(range(400)):
         # 並び替え
@@ -86,11 +90,18 @@ if __name__ == '__main__':
             grad_w1 = (delta1 @ X_train_batch)
             grad_b1 = delta1.mean(1).reshape(n_units_1, 1)
 
+            # 更新前のパラメーターを保存する
+            v_w1, v_b1, v_w2, v_b2 = layer1._w, layer1._b, layer2._w, layer2._b
+
             # パラメーターの更新
-            layer2._w -= lr * grad_w2 / X_train_batch.shape[0]
-            layer2._b -= lr * grad_b2
-            layer1._w -= lr * grad_w1 / X_train_batch.shape[0]
-            layer1._b -= lr * grad_b1
+            layer2._w += delta_w2 * momentum - lr * grad_w2 / X_train_batch.shape[0]
+            layer2._b += delta_b2 * momentum - lr * grad_b2
+            layer1._w += delta_w1 * momentum - lr * grad_w1 / X_train_batch.shape[0]
+            layer1._b += delta_b1 * momentum - lr * grad_b1
+
+            # 次のバッチで使用するデルタを計算する
+            delta_w1, delta_b1 = layer1._w - v_w1, layer1._b - v_b1
+            delta_w2, delta_b2 = layer2._w - v_w2, layer2._b - v_b2
 
             # テストセットで評価
             accuracy.append(accuracy_score(y2.T.argmax(1), y_train_batch.argmax(1)))
@@ -101,8 +112,9 @@ if __name__ == '__main__':
 
     # テストセットでの精度
     plt.plot(range(len(accuracy)), accuracy)
-    plt.title("テストセットでのAccuracy")
+    plt.title("テストセットでのAccuracy(Momentum)")
+    plt.ylim(0, 1)
     plt.xlabel("反復回数")
     plt.ylabel("精度")
     plt.ylim(0, 1)
-    plt.savefig("accuracy_on_test.png", transparent=True)
+    plt.savefig("accuracy_on_test_momentum.png", transparent=True)

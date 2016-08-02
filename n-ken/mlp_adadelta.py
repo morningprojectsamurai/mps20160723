@@ -49,6 +49,8 @@ if __name__ == '__main__':
     batch_size = 1000
     test_size = 0.2
     lr = 0.1
+    gamma = 0.9
+    eps = 1e-8
 
     # 学習セットとテストセットに分割
     X_train, X_test, y_train, y_test = \
@@ -61,6 +63,10 @@ if __name__ == '__main__':
     b1_norm = []
     w2_norm = []
     b2_norm = []
+
+    g_w1, g_b1, g_w2, g_b2 = (0, ) * 4
+    d_w1, d_b1, d_w2, d_b2 = (0, ) * 4
+    delta_w1, delta_b1, delta_w2, delta_b2 = (0, ) * 4
 
     for loop in tqdm(range(400)):
         # 並び替え
@@ -81,16 +87,31 @@ if __name__ == '__main__':
             # BackPropagation
             delta2 = d_se(y_train_batch.T, y2)
             delta1 = (layer2._w.T @ delta2) * d_sigmoid(y1)
-            grad_w2 = (delta2 @ y1.T)
+            grad_w2 = (delta2 @ y1.T) / X_train_batch.shape[0]
             grad_b2 = delta2.mean(1).reshape(n_units_2, 1)
-            grad_w1 = (delta1 @ X_train_batch)
+            grad_w1 = (delta1 @ X_train_batch) / X_train_batch.shape[0]
             grad_b1 = delta1.mean(1).reshape(n_units_1, 1)
 
             # パラメーターの更新
-            layer2._w -= lr * grad_w2 / X_train_batch.shape[0]
-            layer2._b -= lr * grad_b2
-            layer1._w -= lr * grad_w1 / X_train_batch.shape[0]
-            layer1._b -= lr * grad_b1
+            g_w1 = gamma * g_w1 + (1 - gamma) * (grad_w1 ** 2)
+            g_b1 = gamma * g_b1 + (1 - gamma) * (grad_b1 ** 2)
+            g_w2 = gamma * g_w2 + (1 - gamma) * (grad_w2 ** 2)
+            g_b2 = gamma * g_b2 + (1 - gamma) * (grad_b2 ** 2)
+
+            d_w1 = gamma * d_w1 + (1 - gamma) * (delta_w1 ** 2)
+            d_b1 = gamma * d_b1 + (1 - gamma) * (delta_b1 ** 2)
+            d_w2 = gamma * d_w2 + (1 - gamma) * (delta_w2 ** 2)
+            d_b2 = gamma * d_b2 + (1 - gamma) * (delta_b2 ** 2)
+
+            delta_w1 = np.sqrt(d_w1 + eps) / np.sqrt(g_w1 + eps) * grad_w1
+            delta_b1 = np.sqrt(d_b1 + eps) / np.sqrt(g_b1 + eps) * grad_b1
+            delta_w2 = np.sqrt(d_w2 + eps) / np.sqrt(g_w2 + eps) * grad_w2
+            delta_b2 = np.sqrt(d_b2 + eps) / np.sqrt(g_b2 + eps) * grad_b2
+
+            layer2._w -= delta_w2
+            layer2._b -= delta_b2
+            layer1._w -= delta_w1
+            layer1._b -= delta_b1
 
             # テストセットで評価
             accuracy.append(accuracy_score(y2.T.argmax(1), y_train_batch.argmax(1)))
@@ -101,8 +122,8 @@ if __name__ == '__main__':
 
     # テストセットでの精度
     plt.plot(range(len(accuracy)), accuracy)
-    plt.title("テストセットでのAccuracy")
+    plt.title("テストセットでのAccuracy(Adadelta)")
     plt.xlabel("反復回数")
     plt.ylabel("精度")
     plt.ylim(0, 1)
-    plt.savefig("accuracy_on_test.png", transparent=True)
+    plt.savefig("accuracy_on_test_adadelta.png", transparent=True)
