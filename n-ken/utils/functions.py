@@ -15,6 +15,9 @@ def sigmoid(s):
     return 1 / (1 + np.exp(-s))
 
 
+def tanh(x):
+    return 
+
 def relu(s):
     '''
     relu
