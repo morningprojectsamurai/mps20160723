@@ -16,7 +16,12 @@ def sigmoid(s):
 
 
 def tanh(x):
-    return 
+    return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+
+
+def d_tanh(x):
+    return 1 - tanh(x) ** 2
+
 
 def relu(s):
     '''
